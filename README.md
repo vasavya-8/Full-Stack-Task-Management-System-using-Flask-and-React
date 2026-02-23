@@ -1,0 +1,2 @@
+# Full-Stack-Task-Management-System-using-Flask-and-React
+This project is a secure full-stack Task Management web application built using Flask and React. Users can register, log in, and perform CRUD operations on tasks. JWT authentication protects APIs, ensuring users access only their own data. The backend uses Flask, SQLAlchemy, and SQLite, while the frontend uses React and Axios for API communication.
