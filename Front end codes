@@ -1,0 +1,209 @@
+// ==============================
+// Axios Configuration
+// ==============================
+
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: "http://127.0.0.1:5000/api",
+});
+
+// Add token automatically to requests
+API.interceptors.request.use((req) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
+  }
+  return req;
+});
+
+export default API;
+
+// ==============================
+// Login Page
+// ==============================
+
+import React, { useState } from "react";
+import API from "../services/api";
+
+function Login({ setIsLoggedIn }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      const response = await API.post("/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem("token", response.data.access_token);
+      alert("Login Successful!");
+      setIsLoggedIn(true);
+    } catch (error) {
+      alert("Login Failed!");
+    }
+  };
+
+  return (
+    <div style={{ padding: "50px" }}>
+      <h2>Login</h2>
+
+      <input
+        type="email"
+        placeholder="Enter Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <br /><br />
+
+      <input
+        type="password"
+        placeholder="Enter Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <br /><br />
+
+      <button onClick={handleLogin}>Login</button>
+    </div>
+  );
+}
+
+export default Login;
+
+// ==============================
+// Dashboard Page
+// ==============================
+
+import React, { useEffect, useState } from "react";
+import API from "../services/api";
+
+function Dashboard({ setIsLoggedIn }) {
+  const [tasks, setTasks] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  // Fetch tasks
+  const fetchTasks = async () => {
+    try {
+      const response = await API.get("/tasks");
+      setTasks(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  // Create task
+  const createTask = async () => {
+    try {
+      await API.post("/tasks", {
+        title,
+        description,
+        priority: "HIGH",
+      });
+
+      setTitle("");
+      setDescription("");
+      fetchTasks();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Delete task
+  const deleteTask = async (id) => {
+    try {
+      await API.delete(`/tasks/${id}`);
+      fetchTasks();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+  };
+
+  return (
+    <div style={{ padding: "50px" }}>
+      <h2>Dashboard</h2>
+
+      <button onClick={handleLogout}>Logout</button>
+
+      <hr />
+
+      <h3>Create Task</h3>
+
+      <input
+        type="text"
+        placeholder="Task Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <br /><br />
+
+      <input
+        type="text"
+        placeholder="Task Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+
+      <br /><br />
+
+      <button onClick={createTask}>Add Task</button>
+
+      <hr />
+
+      <h3>Your Tasks</h3>
+
+      {tasks.map((task) => (
+        <div key={task.id} style={{ border: "1px solid black", margin: "10px", padding: "10px" }}>
+          <h4>{task.title}</h4>
+          <p>{task.description}</p>
+          <p>Status: {task.status}</p>
+          <button onClick={() => deleteTask(task.id)}>Delete</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default Dashboard;
+
+// ==============================
+// Main App Component
+// ==============================
+
+import React, { useState } from "react";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("token") ? true : false
+  );
+
+  return (
+    <div>
+      {isLoggedIn ? (
+        <Dashboard setIsLoggedIn={setIsLoggedIn} />
+      ) : (
+        <Login setIsLoggedIn={setIsLoggedIn} />
+      )}
+    </div>
+  );
+}
+
+export default App;
+
