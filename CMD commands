@@ -1,0 +1,27 @@
+ Backend commands
+mkdir focusflow
+cd focusflow
+
+mkdir backend
+cd backend
+
+python -m venv venv
+
+venv\Scripts\activate
+
+pip install flask
+pip install flask_sqlalchemy
+pip install flask_jwt_extended
+pip install flask_cors
+
+pip freeze > requirements.txt
+
+python app.py
+
+Front end coomands
+npx create-react-app frontend
+
+cd frontend
+
+npm install axios
+http://localhost:3000
